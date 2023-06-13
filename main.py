@@ -55,6 +55,45 @@ def fetch_data_delivery():
     }
     return Response(json_data, headers=headers)
 
+@app.route('/delivery', methods=['GET'])
+def fetch_data_deliver():
+    connection = mysql.connector.connect(
+        host="127.0.0.1",
+        user="root",
+        password="AgueroAguero123!",
+        database="exsitec"
+    )
+    cursor = connection.cursor()
+    query = "SELECT ID, Date, Product, Destination , Quantity FROM Delivery"
+    cursor.execute(query)
+    rows = cursor.fetchall()
+
+    data = []
+    for row in rows:
+        row_id = row[0]
+        date = row[1]
+        produt_name = row[2]
+        destination = row[3]
+        quantity = row[4]
+        item = {
+        "ID": row_id,
+        "Date": date,
+        "Name": produt_name,
+        "Destination": destination,
+        "Quantity": quantity
+        }
+        data.append(item)
+
+    cursor.close()
+    connection.close()
+    json_data = json.dumps(data, cls=DecimalEncoder)
+    headers = {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'GET',
+        'Access-Control-Allow-Headers': 'Content-Type'
+    }
+    return Response(json_data, headers=headers)
+
 @app.route('/products', methods=['GET'])
 def fetch_data_products():
     connection = mysql.connector.connect(
@@ -229,7 +268,9 @@ def insert_row_inventory():
     }
     return Response("Data inserted successfully.", headers=headers)
 
-def delete_row_products(productnumber):
+@app.route('/remove/products', methods=['POST'])
+def delete_row_products():
+    productnumber = request.json.get('id')
     connection = mysql.connector.connect(
         host="127.0.0.1",
         user="root",
@@ -249,8 +290,18 @@ def delete_row_products(productnumber):
         cursor.close()
         connection.close()
 
+    headers = {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'GET',
+        'Access-Control-Allow-Headers': 'Content-Type'
+    }
+    return Response("Data deleted successfully.", headers=headers) 
+ 
+@app.route('/remove/inventory', methods=['POST'])
+def delete_row_inventory():
 
-def delete_row_inventory(productnumber):
+    inventory_number = request.json.get('id')
+
     connection = mysql.connector.connect(
         host="127.0.0.1",
         user="root",
@@ -259,7 +310,7 @@ def delete_row_inventory(productnumber):
     )
     cursor = connection.cursor()
     query = "DELETE FROM Inventory WHERE ID = %s"
-    values = (productnumber,)
+    values = (inventory_number,)
     try:
         cursor.execute(query, values)
         connection.commit()
@@ -269,8 +320,19 @@ def delete_row_inventory(productnumber):
     finally:
         cursor.close()
         connection.close()
-    
-def delete_row_delivery(productnumber):
+
+    headers = {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'GET',
+        'Access-Control-Allow-Headers': 'Content-Type'
+    }
+    return Response("Data deleted successfully.", headers=headers) 
+
+@app.route('/remove/delivery', methods=['POST'])    
+def delete_row_delivery():
+
+    productnumber = request.json.get('id')
+
     connection = mysql.connector.connect(
         host="127.0.0.1",
         user="root",
@@ -289,6 +351,13 @@ def delete_row_delivery(productnumber):
     finally:
         cursor.close()
         connection.close()
+
+    headers = {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'GET',
+        'Access-Control-Allow-Headers': 'Content-Type'
+    }
+    return Response("Data deleted successfully.", headers=headers) 
 
 if __name__ == '__main__':
      app.run(host='0.0.0.0', port=8000, debug=False)
